@@ -52,6 +52,9 @@ internal class Install
 
     public async Task<int> OnExecuteAsync(CommandLineApplication app)
     {
+        var settings = app.GetRequiredService<OperatorSettings>();
+        settings.PreInitializeAction?.Invoke(settings);
+
         var client = app.GetRequiredService<IKubernetesClient>();
 
         var @namespace = await client.GetCurrentNamespace();
@@ -159,6 +162,7 @@ internal class Install
             if (existingItem != null)
             {
                 await app.Out.WriteLineAsync("Mutator existed, updating.");
+                existingItem.Webhooks = mutatorConfig.Webhooks;
                 await client.Update(existingItem);
             }
             else
